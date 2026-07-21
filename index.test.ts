@@ -242,6 +242,41 @@ describe("i18nMacroPlugin", () => {
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);
 	});
+	it("keeps Chinese only in line multilingual", () => {
+		const md = createMd();
+		const src = dedent`
+			@en ## This is *English* content.
+			@zh ## 这是*中文*内容。
+			@ja ## これは*日本語*の内容です。
+		`;
+		const dist = "<h2>这是<em>中文</em>内容。</h2>";
+		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("keeps Japanese only in line multilingual with custom getCurrentLang", () => {
+		const md = markdownit();
+		md.use(i18nMacroPlugin, { getCurrentLang: () => "ja" });
+		const src = dedent`
+			@en ## This is *English* content.
+			@zh ## 这是*中文*内容。
+			@ja ## これは*日本語*の内容です。
+		`;
+		const dist = "<h2>これは<em>日本語</em>の内容です。</h2>";
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("keeps Chinese only because change source language to Chinese", () => {
+		const md = markdownit();
+		md.use(i18nMacroPlugin, { rootLang: "zh" });
+		const src = dedent`
+			@en ## This is *English* content.
+			@zh ## 这是*中文*内容。
+			@ja ## これは*日本語*の内容です。
+		`;
+		const dist = "<h2>这是<em>中文</em>内容。</h2>";
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
 	it("keeps English only in block multilingual", () => {
 		const md = createMd();
 		const src = dedent`
