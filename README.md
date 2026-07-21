@@ -1,5 +1,11 @@
 # markdown-it-i18n
 
+[![npm](https://img.shields.io/npm/v/markdown-it-i18n?logo=npm&logoColor=%23CB3837&label=npm&labelColor=white&color=%23CB3837)](https://www.npmjs.org/package/markdown-it-i18n)
+[![GitHub](https://img.shields.io/npm/v/markdown-it-i18n?logo=github&label=GitHub&color=%23181717)](https://github.com/otomad/markdown-it-i18n)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)][license-url]
+
+[license-url]: https://opensource.org/licenses/MIT
+
 A [markdown-it](https://github.com/markdown-it/markdown-it) plugin that proposes a custom **single-page multilingual** format. Instead of maintaining separate files for each language, all translations live together in one file, making it much easier to spot and fix errors across languages simultaneously.
 
 ## Why Use It?
@@ -11,118 +17,6 @@ If a document contains 7 languages, when you need to fix a mistake that exists i
 3. Make the same fix 7 times.
 
 With the single-file format, translations sit right next to each other, so you can fix everything in one place.
-
-## Installation
-
-```bash
-npm install markdown-it-i18n
-```
-
-## Usage
-
-### As a markdown-it Plugin
-
-```js
-import MarkdownIt from "markdown-it";
-import i18nMacroPlugin from "markdown-it-i18n";
-
-const md = MarkdownIt();
-md.use(i18nMacroPlugin);
-
-// Render with the current language (defaults to "en"):
-const html = md.render(markdownSource);
-```
-
-#### Specifying the Current Language
-
-There are two ways to tell the plugin which language to render:
-
-**Option 1: Via the environment object** (default — compatible with VitePress):
-
-```js
-const html = md.render(markdownSource, { localeIndex: "zh" });
-```
-
-**Option 2: Via a custom `getCurrentLang` function:**
-
-```js
-const md = MarkdownIt();
-md.use(i18nMacroPlugin, {
-  getCurrentLang: (state) => state.env.currentLang, // read from a custom env key
-});
-const html = md.render(markdownSource, { currentLang: "ja" });
-```
-
-#### Changing the Source (Root) Language
-
-The source language is the fallback language used when a translation for the current language is missing. It defaults to `"en"`:
-
-```js
-md.use(i18nMacroPlugin, {
-  rootLang: "zh", // use Chinese as the source language
-});
-```
-
-You can also pass a function to resolve the root language dynamically at render time:
-
-```js
-md.use(i18nMacroPlugin, {
-  rootLang: (state) => state.env.rootLang || "en",
-});
-```
-
-#### Plugin Options
-
-| Option | Type | Default | Description |
-|---|---|---|---|
-| `getCurrentLang` | `(state: StateCore) => string \| undefined` | `state => state.env.localeIndex` | Returns the target language for rendering. Compatible with VitePress by default. |
-| `rootLang` | `string \| ((state: StateCore) => string)` | `"en"` | The source root language. When the current language is missing a translation, the plugin automatically falls back to this language. |
-
-### Standalone Utility (No markdown-it Required)
-
-You can use the `parseI18nMacro` utility function directly to convert markdown with i18n macros into standard single-language markdown — **without** markdown-it or any other markdown rendering plugin:
-
-```js
-import { parseI18nMacro } from "markdown-it-i18n/utils";
-
-const src = `@en This is English content.
-@zh 这是中文内容。
-@ja これは日本語の内容です。`;
-
-const pureMarkdown = parseI18nMacro(src, "zh");
-// Result: "这是中文内容。"
-```
-
-This is useful when you want to preprocess i18n-marked content before feeding it to any markdown parser, or when you are building a custom pipeline that only needs the raw single-language markdown text.
-
-#### Function Signature
-
-```ts
-function parseI18nMacro(
-  src: string,
-  currentLang?: string,
-  rootLang?: string
-): string;
-```
-
-| Parameter | Type | Default | Description |
-|---|---|---|---|
-| `src` | `string` | *(required)* | The markdown source string containing i18n macro syntax. |
-| `currentLang` | `string \| undefined` | `rootLang` | The target language to extract. If omitted or `undefined`, falls back to `rootLang`. |
-| `rootLang` | `string` | `"en"` | The source root language. Used as fallback when `currentLang` is not found in the translation. |
-
-### Utility: Parsing Locale Tags
-
-The package also exports a `parseLocale` helper for validating and normalizing BCP 47 language tags:
-
-```js
-import { parseLocale } from "markdown-it-i18n/utils";
-
-const locale = parseLocale("zh");
-console.log(locale?.toString()); // "zh-Hans-CN"
-```
-
-This function tries to parse any BCP 47 tag and returns a maximized `Intl.Locale` object with the most likely script and region values. If the tag is invalid, it returns `null` instead of throwing an error — safe for use with user-supplied input.
 
 ## Syntax
 
@@ -162,7 +56,7 @@ If a particular language is missing for a line or block, the plugin will automat
 In some cases, a phrase may be **inherently redundant** when translated literally into a certain language, resulting in unnatural or tautological text. For example, when a definition already encapsulates the meaning in the term itself:
 
 - *"Beef is the meat of cattle."* — In Chinese, the literal translation would be「牛肉是牛的肉」, which reads as an awkward tautology because「牛肉」already contains「牛」(cattle) and「肉」(meat).
-- *"Watermelon is a melon full of water."* — The literal English rendering「西瓜是水分十足的瓜」is similarly redundant since「西瓜」already embeds「西」(west/foreign) and「瓜」(melon/gourd).
+- *「西瓜是水分十足的瓜」* — The literal English rendering "Watermelon is a melon full of water." is similarly redundant since "Watermelon" already embeds "water" and "melon".
 
 For these situations, you can **deliberately leave a translation empty**. The plugin will omit the content entirely for that language, while still displaying it normally for languages where the phrase is not redundant:
 
@@ -194,9 +88,161 @@ The same applies to fallback logic — if both the current language and the sour
 ## Important Rules
 
 - **Do not** mix line-level (`@`) and block-level (`@@@`) syntax for the same content — pick one approach and stay consistent.
-- The `@` or `@@@` markers must appear at the very beginning of a line.
-- Language tags may contain letters, digits, underscores, and hyphens (e.g., `en`, `zh-CN`, `pt_BR`).
+- The `@` or `@@@` markers must appear at the very beginning of a line, and shouldn't be escaped.
+- The language tag must be a valid [Unicode BCP 47 Locale Identifier](https://unicode.org/reports/tr35/#Unicode_locale_identifier), which may contain letters, digits, and hyphens (e.g., `fa`, `es-MX`, `zh-Hant-TW`). **No underscore!**
+  - ❎ `pt_BR`
+  - ☑️ `pt-BR`
 - Empty lines between multilingual groups signal separate content blocks and will affect list rendering in markdown-it.
+
+## Installation
+
+```bash
+# npm
+npm install markdown-it-i18n
+
+# yarn
+yarn add markdown-it-i18n
+
+# pnpm
+pnpm add markdown-it-i18n
+```
+
+## Usage
+
+### As a markdown-it Plugin
+
+```js
+import markdownit from "markdown-it";
+import i18nMacroPlugin from "markdown-it-i18n";
+
+const md = markdownit();
+md.use(i18nMacroPlugin);
+
+// Render with the current language (defaults to "en"):
+const html = md.render(markdownSource);
+```
+
+#### Specifying the Current Language
+
+There are two ways to tell the plugin which language to render:
+
+##### **Option 1: Via the environment object** *(default — compatible with VitePress)*:
+
+```js
+const html = md.render(markdownSource, { localeIndex: "zh" });
+```
+
+##### **Option 2: Via a custom `getCurrentLang` function:**
+
+```js
+const md = markdownit();
+md.use(i18nMacroPlugin, {
+  getCurrentLang: (state) => state.env.currentLang, // Read from a custom env key.
+});
+const html = md.render(markdownSource, { currentLang: "ja" });
+```
+
+##### **Option 3: you don't want to change the environment object, just add aliases for certain languages:**
+
+```js
+const md = markdownit();
+md.use(i18nMacroPlugin, {
+  langAlias(locale, rawLanguage) {
+    if (locale && locale.language === "zh") {
+        if (locale.script === "Hans") return "zhs";
+        else if (locale.script === "Hant") return "zht";
+    }
+    return locale;
+  },
+});
+const html = md.render(markdownSource, { localeIndex: "zh-TW" });
+```
+
+Now you can use your own *short* aliases for each languages, without the standardized *long* language tags.
+
+```markdown
+<!-- Without `langAlias` -->
+@en This is English content.
+@zh-CN 这是简体中文内容。
+@zh-TW 這是繁體中文內容。
+
+<!-- With `langAlias` -->
+@en This is English content.
+@zhs 这是简体中文内容。
+@zht 這是繁體中文內容。
+```
+
+#### Changing the Source (Root) Language
+
+The source language is the fallback language used when a translation for the current language is missing. It defaults to `"en"`:
+
+```js
+md.use(i18nMacroPlugin, {
+  rootLang: "fr", // use French as the source language.
+});
+```
+
+You can also pass a function to resolve the root language dynamically at render time:
+
+```js
+md.use(i18nMacroPlugin, {
+  rootLang: (state) => state.env.rootLang || "en",
+});
+```
+
+#### Plugin Options
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `getCurrentLang` | `(state: StateCore) => string \| undefined` | `state => state.env.localeIndex` | Returns the target language for rendering. Compatible with VitePress by default. |
+| `langAlias` | `(locale: Intl.Locale \| null, lang: string \| undefined) => string \| undefined` | `(locale, lang) => lang` | Allows you use aliases for certain languages without long language tags in each declaration.<br>This can further modify the language tags without changing the env variable of `getCurrentLang`. |
+| `rootLang` | `string \| ((state: StateCore) => string)` | `"en"` | The source root language. When the current language is missing a translation, the plugin automatically falls back to this language. |
+
+### Standalone Utility (No markdown-it Required)
+
+You can use the `parseI18nMacro` utility function directly to convert markdown with i18n macros into standard single-language markdown — **without** markdown-it or any other markdown rendering plugin:
+
+```js
+import { parseI18nMacro } from "markdown-it-i18n/utils";
+
+const src = `@en This is English content.
+@zh 这是中文内容。
+@ja これは日本語の内容です。`;
+
+const pureMarkdown = parseI18nMacro(src, "en");
+// Result: "This is English content."
+```
+
+This is useful when you want to preprocess i18n-marked content before feeding it to any markdown parser, or when you are building a custom pipeline that only needs the raw single-language markdown text.
+
+#### Function Signature
+
+```ts
+function parseI18nMacro(
+  src: string,
+  currentLang?: string,
+  rootLang?: string
+): string;
+```
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `src` | `string` | *(required)* | The markdown source string containing i18n macro syntax. |
+| `currentLang` | `string \| undefined` | `rootLang` | The target language to extract. If omitted or `undefined`, falls back to `rootLang`. |
+| `rootLang` | `string` | `"en"` | The source root language. Used as fallback when `currentLang` is not found in the translation. |
+
+### Utility: Parsing Locale Tags
+
+The package also exports a `parseLocale` helper for validating and normalizing BCP 47 language tags:
+
+```js
+import { parseLocale } from "markdown-it-i18n/utils";
+
+const locale = parseLocale("ko");
+console.log(locale?.toString()); // "ko-Kore-KR"
+```
+
+This function tries to parse any BCP 47 tag and returns a maximized `Intl.Locale` object with the most likely script and region values. If the tag is invalid, it returns `null` instead of throwing an error — safe for use with user-supplied input.
 
 ## How It Works
 

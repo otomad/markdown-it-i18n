@@ -32,6 +32,14 @@ describe("parseLocale", () => {
 		const locale = parseLocale("zh-Latn-x-xdi8")?.toString();
 		expect(locale).toBe("zh-Latn-CN-x-xdi8");
 	});
+	it('expects "xdi8" to be "Shidinn (Latin, Shaoyang, Hunan, China)"', () => {
+		const locale = parseLocale("zh-Latn-x-xdi8")?.toString();
+		expect(locale).toBe("zh-Latn-CN-x-xdi8");
+	});
+	it('expects "invalid_locale" to be null instead of throw an error', () => {
+		const locale = parseLocale("invalid_locale");
+		expect(locale).toBe(null);
+	});
 });
 
 describe("parseI18nMacro", () => {
@@ -242,7 +250,7 @@ describe("i18nMacroPlugin", () => {
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);
 	});
-	it("keeps Chinese only in line multilingual", () => {
+	it("keeps Chinese only in line multilingual with VitePress environment variable", () => {
 		const md = createMd();
 		const src = dedent`
 			@en ## This is *English* content.
@@ -275,6 +283,26 @@ describe("i18nMacroPlugin", () => {
 		`;
 		const dist = "<h2>这是<em>中文</em>内容。</h2>";
 		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("keeps Traditional Chinese only in line multilingual when you don't want to change environment variables", () => {
+		const md = markdownit();
+		md.use(i18nMacroPlugin, {
+			langAlias(locale) {
+				if (locale && locale.language === "zh") {
+					if (locale.script === "Hans") return "zhs";
+					else if (locale.script === "Hant") return "zht";
+				}
+				return locale;
+			},
+		});
+		const src = dedent`
+			@en This is English content.
+			@zhs 这是简体中文内容。
+			@zht 這是繁體中文內容。
+		`;
+		const dist = "<p>這是繁體中文內容。</p>";
+		const rendered = md.render(src, { localeIndex: "zh-TW" }).trimEnd();
 		expect(rendered).toBe(dist);
 	});
 	it("keeps English only in block multilingual", () => {
@@ -360,6 +388,21 @@ describe("i18nMacroPlugin", () => {
 			</tr>
 			</tbody>
 			</table>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should be escaped and not be processed by the macro", () => {
+		const md = createMd();
+		const src = dedent`
+			\@en ## This is *English* content.
+			\@zh ## 这是*中文*内容。
+			\@ja ## これは*日本語*の内容です。
+		`;
+		const dist = dedent`
+			<p>@en ## This is <em>English</em> content.
+			@zh ## 这是<em>中文</em>内容。
+			@ja ## これは<em>日本語</em>の内容です。</p>
 		`;
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);
