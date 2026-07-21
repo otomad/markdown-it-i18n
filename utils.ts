@@ -23,7 +23,7 @@ export function parseI18nMacro(src: string, currentLang?: string, rootLang: stri
 			// If so, it means that the line break needs to be removed when erasing the content.
 			const endsWithNewline = cluster.endsWith("\n");
 
-			const languagesData = {} as any;
+			const languagesData: Record<string, string> = {};
 			// 1. First, use precise line segmentation to extract each language block,
 			// Remove the ending `@@@`, keep @@@en..., @@@zh... only.
 			// Remove any possible line breaks at the end and the ending `@@@` delimiter to maintain a clean segmentation.
@@ -34,8 +34,7 @@ export function parseI18nMacro(src: string, currentLang?: string, rootLang: stri
 			for (const part of parts) {
 				const match = part.match(/^@@@([a-zA-Z0-9_-]+)(?:\n|$)([\s\S]*)$/);
 				if (match) {
-					const lang = match[1];
-					const text = match[2] || "";
+					const [, lang, text = ""] = match;
 					languagesData[lang] = !text.trim()
 						? // Explicitly assigning an empty string indicates that the language intentionally does not display any content.
 							""
@@ -71,10 +70,10 @@ export function parseI18nMacro(src: string, currentLang?: string, rootLang: stri
 		const lines = src.split("\n");
 		const newLines = [];
 
-		let currentCluster = null as any; // Multilingual groups currently being collected.
+		let currentCluster: Record<string, string> | null = null; // Multilingual groups currently being collected.
 
 		// Util function: Specially used to submit a group of multi-language, and insert the filtered text into the array.
-		const flushCluster = (cluster: any) => {
+		const flushCluster = (cluster: typeof currentCluster) => {
 			if (!cluster) return;
 			if (cluster[currentLang] !== undefined) {
 				newLines.push(cluster[currentLang]);
@@ -88,11 +87,10 @@ export function parseI18nMacro(src: string, currentLang?: string, rootLang: stri
 
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
-			const match = line.trim().match(/^@([\w-]+) (.*)$/);
+			const match = line.trim().match(/^@([\w-]+)(?: (.*))?$/);
 
 			if (match) {
-				const lang = match[1];
-				const text = match[2];
+				const [, lang, text = ""] = match;
 
 				// Initialize a new group.
 				if (!currentCluster) {
