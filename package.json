@@ -43,9 +43,6 @@
 		"typescript": "^7.0.2",
 		"vitest": "^4.1.10"
 	},
-	"peerDependencies": {
-		"markdown-it": ">=13"
-	},
 	"keywords": [
 		"markdown-it-plugin",
 		"markdown-it",
