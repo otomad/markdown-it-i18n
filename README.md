@@ -16,7 +16,7 @@ If a document contains 7 languages, when you need to fix a mistake that exists i
 2. Find the corresponding line in each file.
 3. Make the same fix 7 times.
 
-With the single-file format, translations sit right next to each other, so you can fix everything in one place.
+With the single-page format, translations sit right next to each other, so you can fix everything in one place.
 
 ## Syntax
 
@@ -56,7 +56,7 @@ If a particular language is missing for a line or block, the plugin will automat
 In some cases, a phrase may be **inherently redundant** when translated literally into a certain language, resulting in unnatural or tautological text. For example, when a definition already encapsulates the meaning in the term itself:
 
 - *"Beef is the meat of cattle."* — In Chinese, the literal translation would be「牛肉是牛的肉」, which reads as an awkward tautology because「牛肉」already contains「牛」(cattle) and「肉」(meat).
-- *「西瓜是水分十足的瓜」* — The literal English rendering "Watermelon is a melon full of water." is similarly redundant since "Watermelon" already embeds "water" and "melon".
+- *「西瓜是水分十足的瓜」* — The literal English rendering "Watermelon is a melon full of water." is similarly redundant since "watermelon" already embeds "water" and "melon".
 
 For these situations, you can **deliberately leave a translation empty**. The plugin will omit the content entirely for that language, while still displaying it normally for languages where the phrase is not redundant:
 
