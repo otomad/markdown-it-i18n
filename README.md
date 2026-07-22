@@ -89,6 +89,7 @@ The same applies to fallback logic — if both the current language and the sour
 
 - **Do not** mix line-level (`@`) and block-level (`@@@`) syntax for the same content — pick one approach and stay consistent.
 - The `@` or `@@@` markers must appear at the very beginning of a line, and shouldn't be escaped.
+- For line-level translations, languages can appear in any order, but keeping them consistent (e.g., always `@en` first, then `@zh`) helps readability.
 - The language tag must be a valid [Unicode BCP 47 Locale Identifier](https://unicode.org/reports/tr35/#Unicode_locale_identifier), which may contain letters, digits, and hyphens (e.g., `fa`, `es-MX`, `zh-Hant-TW`). **No underscore!**
   - ❎ `pt_BR`
   - ☑️ `pt-BR`
