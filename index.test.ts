@@ -552,7 +552,8 @@ describe("i18nMacroPlugin", () => {
 			This is English content.
 			@@@zh
 			这是中文内容。
-			@@@</code></pre>
+			@@@
+			</code></pre>
 		`;
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);
@@ -573,7 +574,8 @@ describe("i18nMacroPlugin", () => {
 			This is English content.
 			\@@@zh
 			这是中文内容。
-			\@@@</code></pre>
+			\@@@
+			</code></pre>
 		`;
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);
@@ -603,11 +605,11 @@ describe("i18nMacroPlugin", () => {
 		const dist = dedent`
 			<pre><code>Input:
 			${BACKTICK_X3}
-			\@@@en
+			@@@en
 			This is English content.
-			\@@@zh
+			@@@zh
 			这是中文内容。
-			\@@@
+			@@@
 			${BACKTICK_X3}
 			Output:
 			${BACKTICK_X3}
@@ -633,6 +635,121 @@ describe("i18nMacroPlugin", () => {
 			<p><code>-</code>i-am-inline-code
 			This is English content.
 			<code>${"`"}</code></p>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not convert at sign followed with a language tag which has indentation in line multilingual", () => {
+		const md = createMd();
+		const src = dedent`
+			@en 1. This will not work:
+			@zh 1. 这不会工作：
+			   @en 1. The at sign with language tag has indentation, treat it as a normal text.
+			   @zh 1. at符号带语言标签有缩进，将其视为普通文本。
+			@en 2. This will work:
+			@zh 2. 这才会工作：
+			@en    1. The at sign with language tag has no indentation, works properly.
+			@zh    1. at符号带语言标签没有缩进，正常工作。
+		`;
+		const dist = dedent`
+			<ol>
+			<li>This will not work:
+			@en 1. The at sign with language tag has indentation, treat it as a normal text.
+			@zh 1. at符号带语言标签有缩进，将其视为普通文本。</li>
+			<li>This will work:
+			<ol>
+			<li>The at sign with language tag has no indentation, works properly.</li>
+			</ol>
+			</li>
+			</ol>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not convert at sign followed with a language tag which has indentation in block multilingual", () => {
+		const md = createMd();
+		const src = dedent`
+			@en 1. This will not work:
+			@zh 1. 这不会工作：
+				   @@@en
+				   1. The at signs with language tag has indentation, treat it as a normal text.
+				   @@@zh
+				   1. at符号带语言标签有缩进，将其视为普通文本。
+				   @@@
+			@en 2. This will work:
+			@zh 2. 这才会工作：
+			@@@en
+			   1. The at signs with language tag has no indentation, works properly.
+			@@@zh
+			   1. at符号带语言标签没有缩进，正常工作。
+			@@@
+		`;
+		const dist = dedent`
+			<ol>
+			<li>This will not work:
+			@@@en
+			1. The at signs with language tag has indentation, treat it as a normal text.
+			@@@zh
+			1. at符号带语言标签有缩进，将其视为普通文本。
+			@@@</li>
+			<li>This will work:
+			<ol>
+			<li>The at signs with language tag has no indentation, works properly.</li>
+			</ol>
+			</li>
+			</ol>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not convert at sign followed with an invalid language tag", () => {
+		const md = createMd();
+		const src = dedent`
+			${BACKTICK_X3}java
+			@Deprecated(since="9")
+			public Boolean(boolean value) { }
+			${BACKTICK_X3}
+		`;
+		const dist = dedent`
+			<pre><code class="language-java">@Deprecated(since=&quot;9&quot;)
+			public Boolean(boolean value) { }
+			</code></pre>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should support escape at sign followed with an invalid language tag", () => {
+		const md = createMd();
+		const src = dedent`
+			${BACKTICK_X3}java
+			\@Deprecated
+			public Boolean(boolean value) { }
+			${BACKTICK_X3}
+		`;
+		const dist = dedent`
+			<pre><code class="language-java">@Deprecated
+			public Boolean(boolean value) { }
+			</code></pre>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not convert at sign followed with an invalid language tag which has indentation", () => {
+		const md = createMd();
+		const src = dedent`
+			${BACKTICK_X3}java
+			public final class Boolean extends Object implements Serializable,Comparable<Boolean> {
+				@Deprecated
+				public Boolean(boolean value) { }
+			}
+			${BACKTICK_X3}
+		`;
+		const dist = dedent`
+			<pre><code class="language-java">public final class Boolean extends Object implements Serializable,Comparable&lt;Boolean&gt; {
+				@Deprecated
+				public Boolean(boolean value) { }
+			}
+			</code></pre>
 		`;
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);

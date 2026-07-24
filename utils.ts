@@ -11,12 +11,36 @@
 export function parseI18nMacro(src: string, currentLang?: string, rootLang: string = "en") {
 	currentLang ??= rootLang;
 
+	// A unique marker used to protect escaped macros from being processed.
+	// Placed between the escape backslash and the @ sign so the macro regex won't match.
+	const ESCAPE_MARKER = "\0I18N_ESC\0";
+
+	// ==========================================
+	// 0. Preprocess: protect escaped macros from being processed.
+	//    - Escaped line macro: \@lang → marker-protected @lang
+	//    - Escaped block macro: \@@@lang → marker-protected @@@lang
+	//    - Escaped block terminator: \@@@ → marker-protected @@@
+	// ==========================================
+	// Note: we use `replace` with a callback to only protect patterns where
+	// a SINGLE backslash escapes the @ — `\\@` (backslash pair + @) is left alone.
+	src = src.replace(/^(\\+)@(?=[\w-]+|@@?)/gm, (_match, backslashes: string) => {
+		// If odd number of backslashes, the last one escapes the @
+		if (backslashes.length % 2 === 1) {
+			// Keep the paired backslashes, consume the escape backslash,
+			// and insert a marker so the macro regex won't match.
+			return backslashes.slice(0, -1) + ESCAPE_MARKER + "@";
+		}
+		// Even number: all backslashes pair up, @ is NOT escaped — leave as-is
+		return backslashes + "@";
+	});
+
 	// ==========================================
 	// 1. Macro: Block Multilingual (@@@)
 	// ==========================================
 	if (src.includes("@@@")) {
 		// Match consecutive multilingual blocks until encounter an independent `\n@@@` terminator.
-		const blockClusterRegex = /(?:@@@[a-zA-Z0-9_-]+[\s\S]*?\n)+@@@(?:\n)?/g;
+		// The @@@lang must appear at the start of a line (after optional whitespace).
+		const blockClusterRegex = /(?:^@@@[\w-]+[\s\S]*?\n)+^@@@(?:\n)?/gm;
 
 		src = src.replace(blockClusterRegex, cluster => {
 			// Determine whether the captured block ends with a line break.
@@ -29,10 +53,10 @@ export function parseI18nMacro(src: string, currentLang?: string, rootLang: stri
 			// Remove any possible line breaks at the end and the ending `@@@` delimiter to maintain a clean segmentation.
 			const cleanCluster = cluster.replace(/\n?$/, "").replace(/\n\s*@@@$/, "");
 			// Splitted by `@@@lang`.
-			const parts = cleanCluster.split(/(?=^@@@[a-zA-Z0-9_-]+)/m);
+			const parts = cleanCluster.split(/(?=^@@@[\w-]+)/m);
 
 			for (const part of parts) {
-				const match = part.match(/^@@@([a-zA-Z0-9_-]+)(?:\n|$)([\s\S]*)$/);
+				const match = part.match(/^@@@([\w-]+)(?:\n|$)([\s\S]*)$/);
 				if (match) {
 					const [, lang, text = ""] = match;
 					languagesData[lang] = !text.trim()
@@ -88,7 +112,7 @@ export function parseI18nMacro(src: string, currentLang?: string, rootLang: stri
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
 
-			const match = line.trim().match(/^@([\w-]+)(?: (.*))?$/);
+			const match = line.match(/^@([\w-]+)(?: (.*))?$/);
 			if (match) {
 				const [, lang, text = ""] = match;
 
@@ -123,6 +147,13 @@ export function parseI18nMacro(src: string, currentLang?: string, rootLang: stri
 
 		src = newLines.join("\n");
 	}
+
+	// ==========================================
+	// 3. Postprocess: remove escape markers.
+	//    The escape backslash has been consumed, and the marker prevented macro processing.
+	//    Now we just remove the marker, leaving the un-escaped @ text.
+	// ==========================================
+	src = src.replaceAll(ESCAPE_MARKER, "");
 
 	return src;
 }

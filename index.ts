@@ -1,6 +1,7 @@
 import type { PluginWithOptions } from "markdown-it";
 import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 import { parseI18nMacro, parseLocale } from "./utils.js";
+import { unescapeCodeTokens } from "./utils-internal.js";
 
 interface Options {
 	/**
@@ -70,6 +71,13 @@ const i18nMacroPlugin: PluginWithOptions<Options> = (
 		if (typeof rootLang === "function") rootLang = rootLang(state);
 
 		state.src = parseI18nMacro(state.src, currentLang, rootLang);
+	});
+
+	// Register after `inline` to process backslash pairs (`\\` → `\`) inside code blocks/spans.
+	// In normal text, markdown-it handles backslash escaping; in code blocks, backslashes are
+	// literal, so we reduce pairs ourselves. Single `\@` escapes are already handled by parseI18nMacro.
+	md.core.ruler.after("inline", "i18n_macro_code_unescape", state => {
+		unescapeCodeTokens(state.tokens);
 	});
 };
 
