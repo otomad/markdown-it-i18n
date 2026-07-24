@@ -1,7 +1,7 @@
 import type { PluginWithOptions } from "markdown-it";
 import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
-import { parseI18nMacro, parseLocale } from "./utils.js";
-import { unescapeCodeTokens } from "./utils-internal.js";
+import { parseI18nMacro } from "./utils.js";
+import { unescapeCodeTokens, parseLocale } from "./utils-internal.js";
 
 interface Options {
 	/**

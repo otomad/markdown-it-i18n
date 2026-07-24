@@ -232,19 +232,6 @@ function parseI18nMacro(
 | `currentLang` | `string \| undefined` | `rootLang` | The target language to extract. If omitted or `undefined`, falls back to `rootLang`. |
 | `rootLang` | `string` | `"en"` | The source root language. Used as fallback when `currentLang` is not found in the translation. |
 
-### Utility: Parsing Locale Tags
-
-The package also exports a `parseLocale` helper for validating and normalizing BCP 47 language tags:
-
-```js
-import { parseLocale } from "markdown-it-i18n/utils";
-
-const locale = parseLocale("ko");
-console.log(locale?.toString()); // "ko-Kore-KR"
-```
-
-This function tries to parse any BCP 47 tag and returns a maximized `Intl.Locale` object with the most likely script and region values. If the tag is invalid, it returns `null` instead of throwing an error — safe for use with user-supplied input.
-
 ## How It Works
 
 The plugin registers a [core rule](https://github.com/markdown-it/markdown-it/blob/master/docs/architecture.md) called `i18n_macro_preprocessor` that runs **before** the `block` rule. At that stage, `state.src` is still a raw string, so the plugin preprocesses the i18n macro syntax and reduces it to a single-language markdown string. All other markdown-it rules (block, inline, renderer) then process the result as usual. This means the plugin is fully compatible with any other markdown-it plugin and all standard markdown syntax.
