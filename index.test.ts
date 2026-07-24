@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import dedentEscaped from "dedent";
-import { parseI18nMacro, parseLocale } from "./utils";
+import { parseI18nMacro } from "./utils";
+import { parseLocale } from "./utils-internal";
 import i18nMacroPlugin from "./index";
 import markdownit from "markdown-it";
 
