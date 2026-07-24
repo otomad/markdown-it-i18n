@@ -407,4 +407,180 @@ describe("i18nMacroPlugin", () => {
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);
 	});
+	it("should escaped at sign in line multilingual", () => {
+		const md = createMd();
+		const src = dedent`
+			\@en This is English content.
+			\@zh 这是中文内容。
+		`;
+		const dist = dedent`
+			<p>@en This is English content.
+			@zh 这是中文内容。</p>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should escaped backslash in line multilingual", () => {
+		const md = createMd();
+		const src = dedent`
+			\\@en This is English content.
+			\\@zh 这是中文内容。
+		`;
+		const dist = dedent`
+			<p>\@en This is English content.
+			\@zh 这是中文内容。</p>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	const CODE_BLOCK_START = "```\n",
+		CODE_BLOCK_END = "\n```";
+	it("should escaped at sign in line multilingual in a code block", () => {
+		const md = createMd();
+		const src =
+			CODE_BLOCK_START +
+			dedent`
+				\@en This is English content.
+				\@zh 这是中文内容。
+			` +
+			CODE_BLOCK_END;
+		const dist = dedent`
+			<pre><code>@en This is English content.
+			@zh 这是中文内容。
+			</code></pre>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should escaped backslash in line multilingual in a code block", () => {
+		const md = createMd();
+		const src =
+			CODE_BLOCK_START +
+			dedent`
+				\\@en This is English content.
+				\\@zh 这是中文内容。
+			` +
+			CODE_BLOCK_END;
+		const dist = dedent`
+			<pre><code>\@en This is English content.
+			\@zh 这是中文内容。
+			</code></pre>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not care about block multilingual tag inside a sentence", () => {
+		const md = createMd();
+		const src = dedent`
+			Use @@@en and @@@zh to open a block, and use @@@ to close a block.
+		`;
+		const dist = dedent`
+			<p>Use @@@en and @@@zh to open a block, and use @@@ to close a block.</p>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not care about block multilingual tag inside a sentence, then with a block multilingual", () => {
+		const md = createMd();
+		const src = dedent`
+			@en - For large blocks (warnings, tables, etc.), use the @@@en / @@@zh / @@@ block format.
+			@zh - 对于大块内容（警告框、表格等），请使用 @@@en / @@@zh / @@@ 块格式。
+
+			@@@en
+			## Project Structure
+			@@@zh
+			## 项目结构
+			@@@
+		`;
+		const dist = dedent`
+			<ul>
+			<li>For large blocks (warnings, tables, etc.), use the @@@en / @@@zh / @@@ block format.</li>
+			</ul>
+			<h2>Project Structure</h2>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should escaped at sign in block multilingual", () => {
+		const md = createMd();
+		const src = dedent`
+			\@@@en
+			This is English content.
+			\@@@zh
+			这是中文内容。
+			\@@@
+		`;
+		const dist = dedent`
+			<p>@@@en
+			This is English content.
+			@@@zh
+			这是中文内容。
+			@@@</p>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should escaped backslash in block multilingual", () => {
+		const md = createMd();
+		const src = dedent`
+			\\@@@en
+			This is English content.
+			\\@@@zh
+			这是中文内容。
+			\\@@@
+		`;
+		const dist = dedent`
+			<p>\@@@en
+			This is English content.
+			\@@@zh
+			这是中文内容。
+			\@@@</p>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should escaped at sign in block multilingual in a code block", () => {
+		const md = createMd();
+		const src =
+			CODE_BLOCK_START +
+			dedent`
+				\@@@en
+				This is English content.
+				\@@@zh
+				这是中文内容。
+				\@@@
+			` +
+			CODE_BLOCK_END;
+		const dist = dedent`
+			<pre><code>@@@en
+			This is English content.
+			@@@zh
+			这是中文内容。
+			@@@</code></pre>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should escaped backslash in block multilingual in a code block", () => {
+		const md = createMd();
+		const src =
+			CODE_BLOCK_START +
+			dedent`
+				\\@@@en
+				This is English content.
+				\\@@@zh
+				这是中文内容。
+				\\@@@
+			` +
+			CODE_BLOCK_END;
+		const dist = dedent`
+			<pre><code>\@@@en
+			This is English content.
+			\@@@zh
+			这是中文内容。
+			\@@@</code></pre>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
 });

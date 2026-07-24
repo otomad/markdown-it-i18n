@@ -87,8 +87,8 @@ export function parseI18nMacro(src: string, currentLang?: string, rootLang: stri
 
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
-			const match = line.trim().match(/^@([\w-]+)(?: (.*))?$/);
 
+			const match = line.trim().match(/^@([\w-]+)(?: (.*))?$/);
 			if (match) {
 				const [, lang, text = ""] = match;
 
