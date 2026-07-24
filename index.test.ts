@@ -433,17 +433,15 @@ describe("i18nMacroPlugin", () => {
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);
 	});
-	const CODE_BLOCK_START = "```\n",
-		CODE_BLOCK_END = "\n```";
+	const BACKTICK_X3 = "```";
 	it("should escaped at sign in line multilingual in a code block", () => {
 		const md = createMd();
-		const src =
-			CODE_BLOCK_START +
-			dedent`
-				\@en This is English content.
-				\@zh 这是中文内容。
-			` +
-			CODE_BLOCK_END;
+		const src = dedent`
+			${BACKTICK_X3}
+			\@en This is English content.
+			\@zh 这是中文内容。
+			${BACKTICK_X3}
+		`;
 		const dist = dedent`
 			<pre><code>@en This is English content.
 			@zh 这是中文内容。
@@ -454,13 +452,12 @@ describe("i18nMacroPlugin", () => {
 	});
 	it("should escaped backslash in line multilingual in a code block", () => {
 		const md = createMd();
-		const src =
-			CODE_BLOCK_START +
-			dedent`
-				\\@en This is English content.
-				\\@zh 这是中文内容。
-			` +
-			CODE_BLOCK_END;
+		const src = dedent`
+			${BACKTICK_X3}
+			\\@en This is English content.
+			\\@zh 这是中文内容。
+			${BACKTICK_X3}
+		`;
 		const dist = dedent`
 			<pre><code>\@en This is English content.
 			\@zh 这是中文内容。
@@ -541,16 +538,15 @@ describe("i18nMacroPlugin", () => {
 	});
 	it("should escaped at sign in block multilingual in a code block", () => {
 		const md = createMd();
-		const src =
-			CODE_BLOCK_START +
-			dedent`
-				\@@@en
-				This is English content.
-				\@@@zh
-				这是中文内容。
-				\@@@
-			` +
-			CODE_BLOCK_END;
+		const src = dedent`
+			${BACKTICK_X3}
+			\@@@en
+			This is English content.
+			\@@@zh
+			这是中文内容。
+			\@@@
+			${BACKTICK_X3}
+		`;
 		const dist = dedent`
 			<pre><code>@@@en
 			This is English content.
@@ -563,22 +559,80 @@ describe("i18nMacroPlugin", () => {
 	});
 	it("should escaped backslash in block multilingual in a code block", () => {
 		const md = createMd();
-		const src =
-			CODE_BLOCK_START +
-			dedent`
-				\\@@@en
-				This is English content.
-				\\@@@zh
-				这是中文内容。
-				\\@@@
-			` +
-			CODE_BLOCK_END;
+		const src = dedent`
+			${BACKTICK_X3}
+			\\@@@en
+			This is English content.
+			\\@@@zh
+			这是中文内容。
+			\\@@@
+			${BACKTICK_X3}
+		`;
 		const dist = dedent`
 			<pre><code>\@@@en
 			This is English content.
 			\@@@zh
 			这是中文内容。
 			\@@@</code></pre>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not simply treat ``` as code block start or end when escaping", () => {
+		const md = createMd();
+		const src = dedent`
+			${"````"}
+			Input:
+			${"```"}
+			\@@@en
+			This is English content.
+			\@@@zh
+			这是中文内容。
+			\@@@
+			${"```"}
+			Output:
+			${"```"}
+			@@@en
+			This is English content.
+			@@@zh
+			这是中文内容。
+			@@@
+			${"```"}
+			${"````"}
+		`;
+		const dist = dedent`
+			<pre><code>Input:
+			${BACKTICK_X3}
+			\@@@en
+			This is English content.
+			\@@@zh
+			这是中文内容。
+			\@@@
+			${BACKTICK_X3}
+			Output:
+			${BACKTICK_X3}
+			This is English content.
+			${BACKTICK_X3}
+			</code></pre>
+		`;
+		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not simply treat ``` as code block start or end when escaping", () => {
+		const md = createMd();
+		const src = dedent`
+			${"```-```"}i-am-inline-code
+			@@@en
+			This is English content.
+			@@@zh
+			这是中文内容。
+			@@@
+			${"``` ` ```"}
+		`;
+		const dist = dedent`
+			<p><code>-</code>i-am-inline-code
+			This is English content.
+			<code>${"`"}</code></p>
 		`;
 		const rendered = md.render(src).trimEnd();
 		expect(rendered).toBe(dist);
