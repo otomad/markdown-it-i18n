@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest";
 import dedentEscaped from "dedent";
-import { parseI18nMacro } from "../src/utils/index";
-import { parseLocale } from "../src/utils/internal";
-import i18nMacroPlugin from "../src/index";
 import markdownit from "markdown-it";
+import { describe, it, expect } from "vitest";
+import i18nMacroPlugin from "./index";
+import { replaceId } from "./utils/attrs";
+import { parseI18nMacro } from "./utils/index";
+import { parseLocale } from "./utils/locale";
 
 const dedent = dedentEscaped.withOptions({ escapeSpecialCharacters: false });
 

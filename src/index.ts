@@ -1,14 +1,17 @@
 import type { PluginWithOptions } from "markdown-it";
-import { parseI18nMacro } from "./utils/index.js";
-import { unescapeCodeTokens, parseLocale } from "./utils/internal.js";
 import type { Options } from "./types.js";
+import { parseI18nMacro } from "./utils/index.js";
+import { unescapeCodeTokens } from "./utils/internal.js";
+import { parseLocale } from "./utils/locale.js";
 
 const getCurrentLangInVitePress: NonNullable<Options["getCurrentLang"]> = state => state.env.localeIndex;
 const returnAsIs: NonNullable<Options["langAlias"]> = (_locale, lang) => lang;
 
 /**
- * markdown-it / VitePress Single-Page I18n Macro Plugin.
- * @remarks Supports mix with all other markdown syntax.
+ * Markdown-it / VitePress Single-Page I18n Macro Plugin.
+ *
+ * @remarks
+ *   Supports mix with all other markdown syntax.
  */
 const i18nMacroPlugin: PluginWithOptions<Options> = (
 	md,
