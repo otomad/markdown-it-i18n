@@ -18,6 +18,24 @@ export function extractHeadingContent(source: string, { md, env }: { md?: Markdo
 	}
 }
 
+// Void elements (never have closing tags)
+const voidElements = new Set([
+	"area",
+	"base",
+	"br",
+	"col",
+	"embed",
+	"hr",
+	"img",
+	"input",
+	"link",
+	"meta",
+	"param",
+	"source",
+	"track",
+	"wbr",
+]);
+
 /**
  * Find the first heading element (h1-h6) in an HTML string and return its innerText.\
  * Returns null if no heading is found.
@@ -31,16 +49,18 @@ export function extractHeadingContent(source: string, { md, env }: { md?: Markdo
  */
 export function extractHtmlHeadingContent(html: string) {
 	// Tag parsing
-	const headingRegex = /^h[1-6]$/i; // Matches h1 through h6 (case-insensitive).
+	const headingRegex = /^h[1-6]$/i;
+	const tagStack = []; // tracks open non-void tags.
+	let insideHeading = false;
+	let targetHeadingTag = null; // lowercase tag name of the heading we are inside.
+	let textContent = "";
 	let i = 0;
-	let targetTag = null; // Lowercased heading tag name once found.
-	let depth = 0; // Nesting depth for the target heading.
-	let textContent = ""; // Accumulated text.
 
 	while (i < html.length) {
 		if (html[i] === "<") {
-			// Skip comments, DOCTYPE, and XML declarations.
 			const next = html[i + 1];
+
+			// Skip comments, DOCTYPE, and XML declarations.
 			if (next === "!") {
 				if (html[i + 2] === "-" && html[i + 3] === "-") {
 					const end = html.indexOf("-->", i + 4);
@@ -58,7 +78,7 @@ export function extractHtmlHeadingContent(html: string) {
 				continue;
 			}
 
-			// Parse a regular tag.
+			// Parse regular tag
 			let j = i + 1;
 			let isClosing = false;
 			let selfClose = false;
@@ -68,30 +88,28 @@ export function extractHtmlHeadingContent(html: string) {
 				j++;
 			}
 
-			// Extract tag name.
 			const nameStart = j;
 			while (j < html.length && /[a-zA-Z0-9]/.test(html[j])) j++;
 			const tagName = html.slice(nameStart, j).toLowerCase();
 			if (!tagName) {
-				// Not a valid tag; treat `<` as ordinary text.
-				if (depth > 0) textContent += html[i];
+				// Not a valid tag, treat '<' as ordinary text.
+				if (insideHeading) textContent += html[i];
 				i++;
 				continue;
 			}
 
-			// Scan attributes until `>` or `/>`.
+			// Scan attributes until `>` or `/>`, handling escaped quotes.
 			while (j < html.length && html[j] !== ">") {
 				if (html[j] === '"' || html[j] === "'") {
 					const quote = html[j];
-					j++; // move past opening quote.
+					j++; // skip opening quote
 					while (j < html.length) {
 						if (html[j] === "\\") {
-							// Escaped character: skip both backslash and the next char.
-							j += 2;
+							j += 2; // skip escaped character.
 							continue;
 						}
 						if (html[j] === quote) {
-							j++; // move past closing quote.
+							j++; // closing quote.
 							break;
 						}
 						j++;
@@ -106,46 +124,57 @@ export function extractHtmlHeadingContent(html: string) {
 			}
 			if (j < html.length && html[j] === ">") j++; // skip `>`.
 
-			// Update state based on the tag.
-			if (!isClosing && !selfClose) {
-				if (headingRegex.test(tagName) && depth === 0) {
-					targetTag = tagName;
-					depth = 1;
-					// Start collecting inner text (the tag itself is not added).
-				} else if (depth > 0) {
-					depth++; // nested start tag inside heading.
-				}
-			} else if (isClosing) {
-				if (depth > 0 && tagName === targetTag) {
-					depth--;
-					if (depth === 0) {
-						// Found matching closing tag.
-						return decodeEntities(textContent).trim();
-					}
-				} else if (depth > 0) {
-					depth--; // other closing tag inside heading.
-				}
-			} else if (selfClose) {
-				// Self‑closing heading: return empty string.
-				if (headingRegex.test(tagName) && depth === 0) {
+			// Handle the tag
+			if (selfClose) {
+				// Self-closing heading tag (e.g., <h1 />).
+				if (headingRegex.test(tagName) && !insideHeading) {
 					return "";
 				}
-				// Otherwise ignore (doesn't affect depth).
+				// Otherwise ignore (no nesting)
+			} else if (isClosing) {
+				// Closing tag
+				// Pop from stack if the top matches (ignore mismatched end tags)
+				if (tagStack.length > 0 && tagStack[tagStack.length - 1] === tagName) {
+					const popped = tagStack.pop();
+					if (popped === targetHeadingTag) {
+						// Matched our heading end tag -> return collected text.
+						return decodeEntities(textContent).trim();
+					}
+				}
+				// If we are inside the heading and encounter a closing tag that *is* the heading tag
+				// but the stack top doesn't match (e.g., malformed HTML), we still treat it as closing.
+				if (insideHeading && tagName === targetHeadingTag) {
+					// Forcefully close it (robustness).
+					return decodeEntities(textContent).trim();
+				}
+			} else {
+				// Opening tag.
+				if (headingRegex.test(tagName) && !insideHeading) {
+					// This is the first heading we care about.
+					targetHeadingTag = tagName;
+					insideHeading = true;
+					// Note: we still push it onto the stack (unless void, but headings are never void).
+				}
+
+				// Push onto stack if not a void element.
+				if (!voidElements.has(tagName)) {
+					tagStack.push(tagName);
+				}
 			}
 
-			i = j; // advance main index.
+			i = j; // advance past the tag.
 		} else {
-			// Ordinary character – collect if inside the heading.
-			if (depth > 0) textContent += html[i];
+			// Ordinary character – collect if inside heading.
+			if (insideHeading) textContent += html[i];
 			i++;
 		}
 	}
 
-	// End of string: if heading was opened but never closed, return accumulated text.
-	if (targetTag && depth > 0) {
+	// End of string: if heading was opened but never closed, return collected text.
+	if (insideHeading) {
 		return decodeEntities(textContent).trim();
 	}
-	return null; // No heading found.
+	return null;
 }
 
 const entityMap: Record<string, string> = {
