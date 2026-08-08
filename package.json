@@ -64,5 +64,8 @@
 	"files": [
 		"dist",
 		"!dist/tsconfig.tsbuildinfo"
-	]
+	],
+	"dependencies": {
+		"@formatjs/intl-localematcher": "^0.8.13"
+	}
 }

@@ -1,3 +1,5 @@
+import { match } from "@formatjs/intl-localematcher";
+
 /**
  * Parse language or locale tag without raise any error.
  *

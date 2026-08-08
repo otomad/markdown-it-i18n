@@ -1,3 +1,4 @@
+import type MarkdownIt from "markdown-it";
 import type { Options } from "../types.js";
 
 interface ParseI18nMacroOptions {
@@ -14,6 +15,19 @@ interface ParseI18nMacroOptions {
 	 * which will allow the page to scroll in the same position when switching languages.
 	 */
 	consistentHeadingId?: Options["consistentHeadingId"];
+	/**
+	 * Allows you use aliases for certain languages without long language tags in each declaration.\
+	 * This can further modify the language tags without changing the env variable.
+	 */
+	langAlias?: Options["langAlias"];
+	/**
+	 * Markdown it instance. (Optional)
+	 */
+	md?: MarkdownIt;
+	/**
+	 * Markdown it environment variables. (Optional)
+	 */
+	env?: any;
 }
 
 /**
@@ -29,7 +43,7 @@ interface ParseI18nMacroOptions {
 export function parseI18nMacro(
 	src: string,
 	currentLang?: string,
-	{ rootLang = "en", consistentHeadingId = false }: ParseI18nMacroOptions = {},
+	{ rootLang = "en", consistentHeadingId = false, langAlias, md, env }: ParseI18nMacroOptions = {},
 ) {
 	currentLang ??= rootLang;
 	if (consistentHeadingId) {

@@ -12,7 +12,12 @@ export interface Options {
 	 * Allows you use aliases for certain languages without long language tags in each declaration.\
 	 * This can further modify the language tags without changing the env variable of `getCurrentLang`.
 	 *
-	 * @default `lang => lang`
+	 * Note: It has built-in standard local conversion which supporting for familiar
+	 * `zh-HK <=> zh-TW` (Hong Kong Chinese with Taiwan Chinese) and even `ms <=> id` (Malay with Indonesian).
+	 * So you don't need to insist on filling all possible languages into the mapped array, as this is redundant and
+	 * the conversion will be automatically applied.
+	 *
+	 * @default `{}`
 	 *
 	 * @example
 	 * ```markdown
@@ -30,21 +35,18 @@ export interface Options {
 	 * ```javascript
 	 * // Options
 	 * {
-	 *     langAlias(locale) {
-	 *         if (locale && locale.language === "zh") {
-	 *             if (locale.script === "Hans") return "zhs";
-	 *             else if (locale.script === "Hant") return "zht";
-	 *         }
-	 *         return locale;
+	 *     langAlias: {
+	 *         zhs: "zh-CN",
+	 *         zht: "zh-TW",
+	 *         // If you believe that both Spanish and Portuguese speakers can understand Italian, you can put them in an array.
+	 *         it: ["es", "pt"],
+	 *         // Don't do this! Languages that are mutually intelligible will be automatically converted.
+	 *         zht: ["zh-TW", "zh-HK", "zh-MO", "zh-Hant", "zh-Hant-TW", "zh-Hant-HK", "zh-Hant-MO", "zh-Hant-CN", "yue", "yue-HK", "yue-MO", "yue-Hant-HK", "yue-Hant-MO"],
 	 *     }
 	 * }
 	 * ```
-	 *
-	 * @param locale - The parsed maximized `Intl.Locale` object. `null` for locales which parse failed.
-	 * @param lang - The raw language get from env variables of `getCurrentLang`, maybe undefined if no `env` provided.
-	 *   Especially, if you are using VitePress, the source root language may be `"root"` instead of the real language.
 	 */
-	langAlias?: (locale: Intl.Locale | null, lang: string | undefined) => string | undefined;
+	langAlias?: Record<string, string | string[]>;
 	/**
 	 * The source root language.
 	 *
