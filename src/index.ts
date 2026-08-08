@@ -1,6 +1,6 @@
 import type { PluginWithOptions } from "markdown-it";
-import { parseI18nMacro } from "./utils.js";
-import { unescapeCodeTokens, parseLocale } from "./utils-internal.js";
+import { parseI18nMacro } from "./utils/index.js";
+import { unescapeCodeTokens, parseLocale } from "./utils/internal.js";
 import type { Options } from "./types.js";
 
 const getCurrentLangInVitePress: NonNullable<Options["getCurrentLang"]> = state => state.env.localeIndex;

@@ -2,9 +2,10 @@ import type Token from "markdown-it/lib/token.mjs";
 
 /**
  * Parse language or locale tag without raise any error.
+ *
  * @param tag - Language tag or `Intl.Locale` object.
- * @returns Get an `Intl.Locale` object with the most likely values for the language, script, and region.
- * If the passed locale is invalid, it will return `null` instead of raise an error.
+ * @returns Get an `Intl.Locale` object with the most likely values for the language, script, and region. If the passed
+ *   locale is invalid, it will return `null` instead of raise an error.
  */
 export function parseLocale(tag: Intl.UnicodeBCP47LocaleIdentifier | Intl.Locale | undefined | null) {
 	try {
@@ -15,10 +16,9 @@ export function parseLocale(tag: Intl.UnicodeBCP47LocaleIdentifier | Intl.Locale
 }
 
 /**
- * Reduce backslash pairs (`\\` → `\`) inside code blocks and inline code spans.
- * In normal text, markdown-it handles `\\` → `\` via its own backslash escaping.
- * In code blocks/spans, backslashes are literal, so we must process these pairs ourselves.
- * Note: `\@` escaping is already handled by parseI18nMacro at the source level.
+ * Reduce backslash pairs (`\\` → `\`) inside code blocks and inline code spans. In normal text, markdown-it handles
+ * `\\` → `\` via its own backslash escaping. In code blocks/spans, backslashes are literal, so we must process these
+ * pairs ourselves. Note: `\@` escaping is already handled by parseI18nMacro at the source level.
  */
 function unescapeCodeContent(content: string): string {
 	let result = "";
@@ -34,7 +34,9 @@ function unescapeCodeContent(content: string): string {
 	return result;
 }
 
-/** Recursively walk tokens and process backslash pairs in code blocks/spans. */
+/**
+ * Recursively walk tokens and process backslash pairs in code blocks/spans.
+ */
 export function unescapeCodeTokens(tokens: Token[]): void {
 	for (const token of tokens) {
 		if (token.type === "fence" || token.type === "code_block") {
