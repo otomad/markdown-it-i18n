@@ -12,7 +12,7 @@ export interface Options {
 	 * Allows you use aliases for certain languages without long language tags in each declaration.\
 	 * This can further modify the language tags without changing the env variable of `getCurrentLang`.
 	 *
-	 * Note: It has built-in standard local conversion which supporting for familiar
+	 * @note It has built-in standard local conversion which supporting for familiar
 	 * `zh-HK <=> zh-TW` (Hong Kong Chinese with Taiwan Chinese) and even `ms <=> id` (Malay with Indonesian).
 	 * So you don't need to insist on filling all possible languages into the mapped array, as this is redundant and
 	 * the conversion will be automatically applied.
@@ -91,7 +91,10 @@ export interface ConsistentHeadingIdOptions {
 	 * If the specific language is not defined in a set of multilingual group, the first language defined in the group
 	 * will be used.
 	 *
-	 * @default "en"
+	 * @note This option is independent of the `rootLang` option and is specified separately. It will not automatically
+	 * fallback to `rootLang` option, but will only fallback to its default value (`"en"`).
+	 *
+	 * @default "en" // (English)
 	 */
 	useLang?: UseLang;
 }

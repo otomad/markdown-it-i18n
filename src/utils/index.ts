@@ -1,5 +1,7 @@
 import type MarkdownIt from "markdown-it";
 import type { Options } from "../types.js";
+import { extractHeadingContent } from "./heading.js";
+import { matchLocale } from "./locale.js";
 
 interface ParseI18nMacroOptions {
 	/**
@@ -108,22 +110,24 @@ export function parseI18nMacro(
 			}
 
 			// 2. Rigorous fallback strategy (Note: "" is also a valid value and cannot use `!languagesData[currentLang]` to determine).
-			const finalBlockContent =
-				languagesData[currentLang] !== undefined
-					? // If the current language exists (even if it is an empty string ""), it should be strictly adopted without fallback.
-						languagesData[currentLang]
-					: languagesData[rootLang] !== undefined
-						? // If the current language is missing, it will fallback to English.
-							languagesData[rootLang]
-						: // Backstop strategy.
-							Object.values(languagesData)[0] || "";
-			return finalBlockContent === ""
+			const finalContent = (() => {
+				// If the current language exists (even if it is an empty string ""), it should be strictly adopted without fallback.
+				if (languagesData[currentLang] !== undefined) return languagesData[currentLang];
+				// If the current language is missing, it will use locale matcher to match the most mutually intelligible language.
+				const matchedLang = matchLocale(currentLang, Object.keys(languagesData), rootLang, langAlias);
+				if (languagesData[matchedLang] !== undefined) return languagesData[matchedLang];
+				// If the current language is missing, it will fallback to English.
+				if (languagesData[rootLang] !== undefined) return languagesData[rootLang];
+				// Backstop strategy: If there is neither the current language nor root language fallback, the language written at the front will be selected.
+				return Object.values(languagesData)[0] || "";
+			})();
+			return finalContent === ""
 				? // If the content is completely empty, return an empty string directly.
 					// Because regex has already captured the subsequent line breaks, returning an empty string is equivalent to eliminating the line breaks as well.
 					""
 				: // If the content is not empty, it will add the outer newline character that was just swallowed by the regex by false positive
 					// to ensure the normal layout of the following content.
-					finalBlockContent + (endsWithNewline ? "\n" : "");
+					finalContent + (endsWithNewline ? "\n" : "");
 		});
 	}
 
@@ -139,14 +143,21 @@ export function parseI18nMacro(
 		// Util function: Specially used to submit a group of multi-language, and insert the filtered text into the array.
 		const flushCluster = (cluster: typeof currentCluster) => {
 			if (!cluster) return;
-			if (cluster[currentLang] !== undefined) {
-				newLines.push(cluster[currentLang]);
-			} else if (cluster[rootLang] !== undefined) {
-				newLines.push(cluster[rootLang]);
-			} else {
-				// If there is neither the current language nor root language fallback, the language written at the front will be selected.
-				newLines.push(Object.values(cluster)[0] || "");
+			const finalContent = (() => {
+				// If the current language exists (even if it is an empty string ""), it should be strictly adopted without fallback.
+				if (cluster[currentLang] !== undefined) return cluster[currentLang];
+				// If the current language is missing, it will use locale matcher to match the most mutually intelligible language.
+				const matchedLang = matchLocale(currentLang, Object.keys(cluster), rootLang, langAlias);
+				if (cluster[matchedLang] !== undefined) return cluster[matchedLang];
+				// If the current language is missing, it will fallback to English.
+				if (cluster[rootLang] !== undefined) return cluster[rootLang];
+				// Backstop strategy: If there is neither the current language nor root language fallback, the language written at the front will be selected.
+				return Object.values(cluster)[0] || "";
+			})();
+			if (consistentHeadingId) {
+				// const headingContent = extractHeadingContent()
 			}
+			newLines.push(finalContent);
 		};
 
 		for (let i = 0; i < lines.length; i++) {
