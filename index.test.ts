@@ -108,7 +108,7 @@ describe("parseI18nMacro", () => {
 
 			这是另一段内容。
 		`;
-		expect(parseI18nMacro(src, "ja", "zh")).toBe(dist);
+		expect(parseI18nMacro(src, "ja", { rootLang: "zh" })).toBe(dist);
 	});
 	it("should support content without empty line", () => {
 		const src = dedent`

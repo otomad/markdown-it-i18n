@@ -1,3 +1,19 @@
+interface ParseI18nMacroOptions {
+	/**
+	 * Specify the source root language.
+	 *
+	 * When `currentLang` is missing in the translation, it will automatically fallback to this language.
+	 *
+	 * Defaults to "en".
+	 */
+	rootLang?: string;
+	/**
+	 * Ensure that the same heading title has a consistent ID across different languages,
+	 * which will allow the page to scroll in the same position when switching languages.
+	 */
+	consistentHeadingId?: boolean;
+}
+
 /**
  * A util function that to parse i18n macro in a markdown string to pure markdown.
  * @remarks This is a pure util function, without markdown-it or any other markdown parser.
@@ -8,7 +24,11 @@
  * Defaults to "en".
  * @returns The parsed single language markdown string.
  */
-export function parseI18nMacro(src: string, currentLang?: string, rootLang: string = "en") {
+export function parseI18nMacro(
+	src: string,
+	currentLang?: string,
+	{ rootLang = "en", consistentHeadingId = false }: ParseI18nMacroOptions = {},
+) {
 	currentLang ??= rootLang;
 
 	// A unique marker used to protect escaped macros from being processed.

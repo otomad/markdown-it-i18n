@@ -15,15 +15,15 @@
 	"type": "module",
 	"main": "dist/index.js",
 	"module": "dist/index.js",
-	"types": "dist/types/index.d.ts",
+	"types": "dist/index.d.ts",
 	"exports": {
 		".": {
-			"import": "./dist/index.js",
-			"types": "./dist/types/index.d.ts"
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
 		},
 		"./utils": {
-			"import": "./dist/utils.js",
-			"types": "./dist/types/utils.d.ts"
+			"types": "./dist/utils.d.ts",
+			"import": "./dist/utils.js"
 		}
 	},
 	"scripts": {
