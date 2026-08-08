@@ -757,3 +757,14 @@ describe("i18nMacroPlugin", () => {
 		expect(rendered).toBe(dist);
 	});
 });
+
+describe("replaceId", () => {
+	it("should add id", () => {
+		const src = "Hello";
+		const dist = "Hello {#world}";
+		expect(
+			replaceId(src, () => "world"),
+			dist,
+		);
+	});
+});
