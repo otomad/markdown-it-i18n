@@ -3,7 +3,10 @@ import type { Options } from "./types.js";
 import { parseI18nMacro } from "./utils/index.js";
 import { unescapeCodeTokens } from "./utils/unescape.js";
 
-const getCurrentLangInVitePress: NonNullable<Options["getCurrentLang"]> = state => state.env.localeIndex;
+const getCurrentLangInVitePress: NonNullable<Options["getCurrentLang"]> = state => {
+	const locale = state.env.localeIndex;
+	return locale === "root" ? "en" : locale;
+};
 
 /**
  * Markdown-it / VitePress Single-Page I18n Macro Plugin.
