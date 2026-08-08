@@ -4,12 +4,16 @@ import { findBlockAttr } from "./attrs.js";
 export function extractHeadingContent(source: string, { md, env }: { md?: MarkdownIt; env?: any } = {}): string | null {
 	if (!source.includes("# ")) return null;
 	if (!md) {
+		// If no markdown it instance provided, it will use regex to extract title, maybe not correct,
+		// and the inline syntax will not parse and return as is.
 		const blockAttrInfo = findBlockAttr(source);
 		if (blockAttrInfo) source = source.slice(0, blockAttrInfo.start).trimEnd();
 		const matched = source.trim().match(/^(?:(?:>|[*+-]\s)\s*)*#{1,6}\s+(.*)$/); // Consider standard markdown syntax only.
 		const content = matched?.[1].trim();
 		return content || null;
 	} else {
+		// If markdown it instance provided, the title extraction will be more precise. It supports inline syntax,
+		// and if some other markdown it plugin adds some extra headings, they will also be handled.
 		const html = md.render(source, env);
 		if (/<\/h[123456]>/i.test(html)) {
 			return extractHtmlHeadingContent(html);
