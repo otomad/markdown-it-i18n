@@ -1,3 +1,5 @@
+import type { Options } from "../types.js";
+
 interface ParseI18nMacroOptions {
 	/**
 	 * Specify the source root language.
@@ -11,7 +13,7 @@ interface ParseI18nMacroOptions {
 	 * Ensure that the same heading title has a consistent ID across different languages,
 	 * which will allow the page to scroll in the same position when switching languages.
 	 */
-	consistentHeadingId?: boolean;
+	consistentHeadingId?: Options["consistentHeadingId"];
 }
 
 /**

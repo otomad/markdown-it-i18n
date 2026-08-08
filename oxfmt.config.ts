@@ -8,11 +8,7 @@ export default defineConfig({
 	singleQuote: false,
 	arrowParens: "avoid",
 	htmlWhitespaceSensitivity: "ignore",
-	jsdoc: {
-		commentLineStrategy: "multiline",
-		descriptionWithDot: true,
-		preferCodeFences: true,
-	},
+	jsdoc: false,
 	sortImports: {
 		partitionByComment: true,
 		partitionByNewline: true,

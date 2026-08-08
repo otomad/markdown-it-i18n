@@ -1,14 +1,13 @@
 export function replaceId(source: string, replacer: (oldId: string) => string): string {
-	// ---------- 主逻辑 ----------
 	const block = findBlockAttr(source);
 
-	// 情况1：原本没有块级属性
+	// 1. No block attrs
 	if (!block) {
 		const newId = replacer(undefined!);
-		if (!newId) return source; // falsy → 不添加
+		if (!newId) return source; // falsy → do not add
 
 		const attrStr = buildIdAttr(newId);
-		// 在最后一个非空白字符之后插入属性，保留原有尾部空白
+		// Add attrs after the last non-whitespace char, preserve original whitespaces.
 		let lastNonSpace = source.length - 1;
 		while (lastNonSpace >= 0 && isSpace(source[lastNonSpace])) lastNonSpace--;
 		const prefix = source.substring(0, lastNonSpace + 1);
@@ -16,7 +15,7 @@ export function replaceId(source: string, replacer: (oldId: string) => string): 
 		return `${prefix} {${attrStr}}${tailSpaces}`;
 	}
 
-	// 情况2：存在块级属性
+	// 2. Exist block attrs
 	const inner = block.attr.slice(1, -1);
 	const attrs = parseAttrs(inner);
 
@@ -26,7 +25,7 @@ export function replaceId(source: string, replacer: (oldId: string) => string): 
 	for (const attr of attrs) {
 		if (attr.type === "id") {
 			oldId = attr.value;
-			// 旧的 id 属性不加入 newAttrParts，相当于删除
+			// The old id attr will not add to newAttrParts, equivalent to delete.
 		} else {
 			newAttrParts.push(attr.raw);
 		}
@@ -38,13 +37,13 @@ export function replaceId(source: string, replacer: (oldId: string) => string): 
 	}
 
 	const newInner = newAttrParts.join(" ");
-	// 原分隔空白字符（即 { 前面的一个字符）
+	// Original separated whitespace char (i.e. the char before `{`)
 	const sepIdx = block.start - 1;
-	const separator = source[sepIdx]; // 一定是空白
-	const afterBlock = source.substring(block.end + 1); // 属性之后的部分（含尾部空白）
+	const separator = source[sepIdx]; // Must be a whitespace.
+	const afterBlock = source.substring(block.end + 1); // The part after the attrs (includes trailing whitespaces).
 
 	if (newInner.length === 0) {
-		// 删除整个块属性及前导空白，保留之后的内容
+		// Delete the whole block attrs with the leading whitespace, preserve the part after.
 		return source.substring(0, sepIdx) + afterBlock;
 	}
 
@@ -52,15 +51,19 @@ export function replaceId(source: string, replacer: (oldId: string) => string): 
 	return source.substring(0, sepIdx) + replacement + afterBlock;
 }
 
-// 判断字符是否为 Unicode 空白
+/**
+ * Check if the character is a Unicode whitespace.
+ */
 function isSpace(ch: string): boolean {
-	// 使用正则 \s 覆盖大部分常见空白（空格、制表、换行等），
-	// 但换行一般不会出现在单行字符串内，此处依旧安全。
+	// Use Regex /\s/ can fill almost every common whitespaces (spaces, tabs, line breaks),
+	// Although line breaks hardly ever appear in a inline string, it's still safe.
 	return /\s/.test(ch);
 }
 
-// 查找块级属性 { ... } 的位置（行尾，且前有一个空白字符）
-function findBlockAttr(s: string): { start: number; end: number; attr: string } | null {
+/**
+ * Check the position of block attributes (line end, with a leading whitespace character).
+ */
+export function findBlockAttr(s: string): { start: number; end: number; attr: string } | null {
 	let i = s.length - 1;
 	while (i >= 0 && isSpace(s[i])) i--;
 	if (i < 0 || s[i] !== "}") return null;
@@ -95,7 +98,7 @@ function findBlockAttr(s: string): { start: number; end: number; attr: string } 
 		} else if (ch === "{") {
 			depth--;
 			if (depth === 0) {
-				// 前面一个字符必须是空白
+				// The previous char must be a whitespace.
 				if (j > 0 && isSpace(s[j - 1])) {
 					return { start: j, end, attr: s.substring(j, end + 1) };
 				}
@@ -106,7 +109,9 @@ function findBlockAttr(s: string): { start: number; end: number; attr: string } 
 	return null;
 }
 
-// 引号内的字符串反转义
+/**
+ * Unescape the string within the quotes (attribute values).
+ */
 function unescape(str: string, quote: string): string {
 	let result = "";
 	let escaped = false;
@@ -128,7 +133,9 @@ function unescape(str: string, quote: string): string {
 	return result;
 }
 
-// 解析属性列表
+/**
+ * Parse attribute list.
+ */
 function parseAttrs(inner: string) {
 	interface Attr {
 		type: "id" | "class" | "attr" | "bool";
@@ -168,7 +175,7 @@ function parseAttrs(inner: string) {
 			while (i < inner.length && inner[i] !== "=" && !isSpace(inner[i]) && inner[i] !== "}") i++;
 			const key = inner.substring(keyStart, i);
 			if (i < inner.length && inner[i] === "=") {
-				i++; // 跳过 '='
+				i++; // Skip "=".
 				let value: string, raw: string;
 				if (i < inner.length && (inner[i] === '"' || inner[i] === "'")) {
 					const quote = inner[i];
@@ -190,7 +197,7 @@ function parseAttrs(inner: string) {
 						i++;
 					}
 					value = unescape(inner.substring(valStart, i), quote);
-					if (i < inner.length) i++; // 跳过结束引号
+					if (i < inner.length) i++; // Skip the end quote.
 					raw = inner.substring(start, i);
 				} else {
 					const valStart = i;
@@ -198,7 +205,7 @@ function parseAttrs(inner: string) {
 					value = inner.substring(valStart, i);
 					raw = inner.substring(start, i);
 				}
-				// id 属性统一记为 type: 'id'
+				// id attr will be marked as `type: "id"`.
 				if (key === "id") {
 					attrs.push({ type: "id", value, raw });
 				} else {
@@ -212,7 +219,11 @@ function parseAttrs(inner: string) {
 	return attrs;
 }
 
-// 构造 id 属性片段（自动选择 #id 或 id="..."）
+/**
+ * Construct id attribute fragment.
+ *
+ * It will automatically choose to use `#id` or `id="..."`.
+ */
 function buildIdAttr(id: string): string {
 	if (/[\s"'{}]/.test(id)) {
 		const escaped = id.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
