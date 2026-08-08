@@ -82,7 +82,7 @@ export interface Options {
 
 type UseLang = string | ((state: StateCore) => string);
 
-interface ConsistentHeadingIdOptions {
+export interface ConsistentHeadingIdOptions {
 	/**
 	 * Specify using which language to generate slug ID.
 	 *

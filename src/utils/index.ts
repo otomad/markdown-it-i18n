@@ -32,6 +32,10 @@ export function parseI18nMacro(
 	{ rootLang = "en", consistentHeadingId = false }: ParseI18nMacroOptions = {},
 ) {
 	currentLang ??= rootLang;
+	if (consistentHeadingId) {
+		if (consistentHeadingId === true) consistentHeadingId = {};
+		consistentHeadingId.useLang ??= "en";
+	}
 
 	// A unique marker used to protect escaped macros from being processed.
 	// Placed between the escape backslash and the @ sign so the macro regex won't match.
