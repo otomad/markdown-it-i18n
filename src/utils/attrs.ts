@@ -231,3 +231,13 @@ function buildIdAttr(id: string): string {
 	}
 	return `#${id}`;
 }
+
+/**
+ * Generate URL friendly strings.
+ */
+export const slugify = (str: string) =>
+	str
+		.toLowerCase()
+		.replaceAll(/[\p{P}\p{S}]/gu, " ")
+		.trim()
+		.replaceAll(/\s+/g, "-");

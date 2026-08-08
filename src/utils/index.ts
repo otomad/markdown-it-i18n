@@ -1,5 +1,6 @@
 import type MarkdownIt from "markdown-it";
-import type { Options } from "../types.js";
+import type { Options, ConsistentHeadingIdOptions } from "../types.js";
+import { replaceId, slugify } from "./attrs.js";
 import { extractHeadingContent } from "./heading.js";
 import { matchLocale } from "./locale.js";
 
@@ -16,7 +17,7 @@ interface ParseI18nMacroOptions {
 	 * Ensure that the same heading title has a consistent ID across different languages,
 	 * which will allow the page to scroll in the same position when switching languages.
 	 */
-	consistentHeadingId?: Options["consistentHeadingId"];
+	consistentHeadingId?: boolean | ConsistentHeadingIdOptions<"utils">;
 	/**
 	 * Allows you use aliases for certain languages without long language tags in each declaration.\
 	 * This can further modify the language tags without changing the env variable.
@@ -143,7 +144,7 @@ export function parseI18nMacro(
 		// Util function: Specially used to submit a group of multi-language, and insert the filtered text into the array.
 		const flushCluster = (cluster: typeof currentCluster) => {
 			if (!cluster) return;
-			const finalContent = (() => {
+			let finalContent = (() => {
 				// If the current language exists (even if it is an empty string ""), it should be strictly adopted without fallback.
 				if (cluster[currentLang] !== undefined) return cluster[currentLang];
 				// If the current language is missing, it will use locale matcher to match the most mutually intelligible language.
@@ -154,9 +155,21 @@ export function parseI18nMacro(
 				// Backstop strategy: If there is neither the current language nor root language fallback, the language written at the front will be selected.
 				return Object.values(cluster)[0] || "";
 			})();
+
+			// Feature: Make heading in every languages have same ID.
 			if (consistentHeadingId) {
-				// const headingContent = extractHeadingContent()
+				const useLang = consistentHeadingId.useLang!;
+				const lineForSlug = (() => {
+					if (cluster[useLang] !== undefined) return cluster[useLang];
+					const matchedLang = matchLocale(useLang, Object.keys(cluster), rootLang, langAlias);
+					if (cluster[matchedLang] !== undefined) return cluster[matchedLang];
+					if (cluster[rootLang] !== undefined) return cluster[rootLang];
+					return Object.values(cluster)[0] || "";
+				})();
+				const headingContent = extractHeadingContent(lineForSlug, { md, env });
+				if (headingContent) finalContent = replaceId(finalContent, oldId => oldId || slugify(headingContent));
 			}
+
 			newLines.push(finalContent);
 		};
 

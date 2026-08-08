@@ -19,10 +19,12 @@ const i18nMacroPlugin: PluginWithOptions<Options> = (
 	md.core.ruler.before("block", "i18n_macro_preprocessor", state => {
 		const currentLang = getCurrentLang(state);
 		if (typeof rootLang === "function") rootLang = rootLang(state);
+		if (typeof consistentHeadingId === "object" && typeof consistentHeadingId?.useLang === "function")
+			consistentHeadingId.useLang = consistentHeadingId.useLang(state);
 
 		state.src = parseI18nMacro(state.src, currentLang, {
 			rootLang,
-			consistentHeadingId,
+			consistentHeadingId: consistentHeadingId as never,
 			langAlias,
 			md,
 			env: state.env,

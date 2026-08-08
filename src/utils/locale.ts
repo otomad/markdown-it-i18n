@@ -29,7 +29,7 @@ export function matchLocale(
 	aliases: typeof lastAliases = {},
 ): string {
 	// If the `aliases` are exactly the same as the previous ones, repeat the previous `lastAliasesReverseMap` to avoid repeated calculations.
-	let aliasesReverseMap!: Map<string, string>;
+	let aliasesReverseMap: Map<string, string> | undefined;
 	if (Object.keys(aliases).length) {
 		if (lastAliases !== aliases) {
 			lastAliases = aliases;
@@ -51,5 +51,5 @@ export function matchLocale(
 	} catch {
 		resultLocale = defaultLocale;
 	}
-	return aliasesReverseMap.has(resultLocale) ? aliasesReverseMap.get(resultLocale)! : resultLocale;
+	return aliasesReverseMap?.has(resultLocale) ? aliasesReverseMap.get(resultLocale)! : resultLocale;
 }

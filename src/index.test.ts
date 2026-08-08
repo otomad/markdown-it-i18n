@@ -1,12 +1,13 @@
 import dedentEscaped from "dedent";
-import markdownit from "markdown-it";
+import MarkdownIt from "markdown-it";
 import { describe, it, expect } from "vitest";
 import i18nMacroPlugin from "./index";
+import type { Options } from "./types";
 export const dedent = dedentEscaped.withOptions({ escapeSpecialCharacters: false });
 
-function createMd() {
-	const md = markdownit();
-	md.use(i18nMacroPlugin);
+function createMd(options?: Options) {
+	const md = MarkdownIt();
+	md.use(i18nMacroPlugin, options);
 	return md;
 }
 
@@ -34,8 +35,7 @@ describe("i18nMacroPlugin", () => {
 		expect(rendered).toBe(dist);
 	});
 	it("keeps Japanese only in line multilingual with custom getCurrentLang", () => {
-		const md = markdownit();
-		md.use(i18nMacroPlugin, { getCurrentLang: () => "ja" });
+		const md = createMd({ getCurrentLang: () => "ja" });
 		const src = dedent`
 			@en ## This is *English* content.
 			@zh ## 这是*中文*内容。
@@ -46,8 +46,7 @@ describe("i18nMacroPlugin", () => {
 		expect(rendered).toBe(dist);
 	});
 	it("keeps Chinese only because change source language to Chinese", () => {
-		const md = markdownit();
-		md.use(i18nMacroPlugin, { rootLang: "zh" });
+		const md = createMd({ rootLang: "zh" });
 		const src = dedent`
 			@en ## This is *English* content.
 			@zh ## 这是*中文*内容。
@@ -58,14 +57,10 @@ describe("i18nMacroPlugin", () => {
 		expect(rendered).toBe(dist);
 	});
 	it("keeps Traditional Chinese only in line multilingual when you don't want to change environment variables", () => {
-		const md = markdownit();
-		md.use(i18nMacroPlugin, {
-			langAlias(locale) {
-				if (locale && locale.language === "zh") {
-					if (locale.script === "Hans") return "zhs";
-					else if (locale.script === "Hant") return "zht";
-				}
-				return locale;
+		const md = createMd({
+			langAlias: {
+				zhs: "zh-CN",
+				zht: "zh-TW",
 			},
 		});
 		const src = dedent`
@@ -524,6 +519,38 @@ describe("i18nMacroPlugin", () => {
 			</code></pre>
 		`;
 		const rendered = md.render(src).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("has consistent heading id", () => {
+		const md = createMd({ consistentHeadingId: true });
+		const src = dedent`
+			@en ## This is *English* content.
+			@zh ## 这是*中文*内容。
+		`;
+		const dist = "<h2>这是<em>中文</em>内容。 {#this-is-english-content}</h2>";
+		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("has consistent heading id without link url", () => {
+		const md = createMd({ consistentHeadingId: true });
+		const src = dedent`
+			@en ## This is "English" content with [link](#url) and ![img](.jpg).
+			@zh ## 这是“中文”内容带有[链接](#url)和![图片](.jpg)。
+		`;
+		const dist =
+			'<h2>这是“中文”内容带有<a href="#url">链接</a>和<img src=".jpg" alt="图片">。 {#this-is-english-content-with-link-and}</h2>';
+		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("has consistent heading id which not based on english", () => {
+		const md = createMd({ consistentHeadingId: { useLang: "zh" } });
+		const src = dedent`
+			@en ## This is "English" content with [link](#url) and ![img](.jpg).
+			@zh ## 这是“中文”内容带有[链接](#url)和![图片](.jpg)。
+		`;
+		const dist =
+			'<h2>这是“中文”内容带有<a href="#url">链接</a>和<img src=".jpg" alt="图片">。 {#这是-中文-内容带有链接和}</h2>';
+		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
 		expect(rendered).toBe(dist);
 	});
 });

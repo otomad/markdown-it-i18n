@@ -79,22 +79,19 @@ export interface Options {
 	 *
 	 * @default false
 	 */
-	consistentHeadingId?: boolean | ConsistentHeadingIdOptions;
+	consistentHeadingId?: boolean | ConsistentHeadingIdOptions<"plugin">;
 }
 
 type UseLang = string | ((state: StateCore) => string);
 
-export interface ConsistentHeadingIdOptions {
+export interface ConsistentHeadingIdOptions<TFor extends "plugin" | "utils"> {
 	/**
 	 * Specify using which language to generate slug ID.
 	 *
 	 * If the specific language is not defined in a set of multilingual group, the first language defined in the group
 	 * will be used.
 	 *
-	 * @note This option is independent of the `rootLang` option and is specified separately. It will not automatically
-	 * fallback to `rootLang` option, but will only fallback to its default value (`"en"`).
-	 *
 	 * @default "en" // (English)
 	 */
-	useLang?: UseLang;
+	useLang?: TFor extends "plugin" ? UseLang : string;
 }
