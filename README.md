@@ -181,6 +181,7 @@ md.use(i18nMacroPlugin, {
     zhs: "zh-CN",       // Simplified Chinese
     zht: "zh-TW",       // Traditional Chinese
     // If you believe that both Spanish and Portuguese speakers can understand Italian, you can put them in an array.
+    // Note that Spanish, Portuguese, and Italian are not actually mutually intelligible. This is just an example of manually using the array due to it cannot be recognized by the locale matcher.
     it: ["es", "pt"],
   },
 });

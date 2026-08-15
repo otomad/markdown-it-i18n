@@ -39,6 +39,7 @@ export interface Options {
 	 *         zhs: "zh-CN",
 	 *         zht: "zh-TW",
 	 *         // If you believe that both Spanish and Portuguese speakers can understand Italian, you can put them in an array.
+	 *         // Note that Spanish, Portuguese, and Italian are not actually mutually intelligible. This is just an example of manually using the array due to it cannot be recognized by the locale matcher.
 	 *         it: ["es", "pt"],
 	 *         // Don't do this! Languages that are mutually intelligible will be automatically converted.
 	 *         zht: ["zh-TW", "zh-HK", "zh-MO", "zh-Hant", "zh-Hant-TW", "zh-Hant-HK", "zh-Hant-MO", "zh-Hant-CN", "yue", "yue-HK", "yue-MO", "yue-Hant-HK", "yue-Hant-MO"],
