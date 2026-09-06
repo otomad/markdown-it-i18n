@@ -73,6 +73,15 @@ describe("extractHeadingContent", () => {
 				"Hello *World* with ![Img](./img.jpg)",
 			);
 		});
+		it("extract heading by removing spaces", () => {
+			expect(extractHeadingContent("> * #    Hello World     ")).toBe("Hello World");
+		});
+		it("extract heading by removing tabs", () => {
+			expect(extractHeadingContent("> * #    Hello World \t")).toBe("Hello World");
+		});
+		it("extract heading by removing zero width spaces", () => {
+			expect(extractHeadingContent("> * # Hello World \u200B")).toBe("Hello World");
+		});
 	});
 	describe("With markdown it environment", () => {
 		const md = MarkdownIt();
@@ -94,6 +103,15 @@ describe("extractHeadingContent", () => {
 			expect(extractHeadingContent("> * # Hello *World* with ![Img](./img.jpg)", { md })).toBe(
 				"Hello World with",
 			);
+		});
+		it("extract heading by removing spaces", () => {
+			expect(extractHeadingContent("> * #    Hello World   \xa0 ", { md })).toBe("Hello World");
+		});
+		it("extract heading by removing tabs", () => {
+			expect(extractHeadingContent("> * # \v Hello World \t", { md })).toBe("Hello World");
+		});
+		it("extract heading by removing zero width spaces", () => {
+			expect(extractHeadingContent("> * # \ufeff Hello World \u200B", { md })).toBe("Hello World");
 		});
 	});
 });
