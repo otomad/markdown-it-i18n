@@ -80,7 +80,7 @@ describe("extractHeadingContent", () => {
 			expect(extractHeadingContent("> * #    Hello World \t")).toBe("Hello World");
 		});
 		it("extract heading by removing zero width spaces", () => {
-			expect(extractHeadingContent("> * # Hello World \u200B")).toBe("Hello World");
+			expect(extractHeadingContent("> * # Hello World \u200b")).toBe("Hello World");
 		});
 	});
 	describe("With markdown it environment", () => {
@@ -111,7 +111,7 @@ describe("extractHeadingContent", () => {
 			expect(extractHeadingContent("> * # \v Hello World \t", { md })).toBe("Hello World");
 		});
 		it("extract heading by removing zero width spaces", () => {
-			expect(extractHeadingContent("> * # \ufeff Hello World \u200B", { md })).toBe("Hello World");
+			expect(extractHeadingContent("> * # \ufeff Hello World \u200b", { md })).toBe("Hello World");
 		});
 	});
 });

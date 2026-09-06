@@ -1,6 +1,15 @@
 import type MarkdownIt from "markdown-it";
 import { findBlockAttr } from "./attrs.js";
 
+/**
+ * Zero-width and other invisible format characters are not matched by `\s`,
+ * so `String.prototype.trim()` leaves them behind (e.g., U+200B zero width space).
+ * Strip them explicitly when trimming heading content.
+ */
+function trim(str: string): string {
+	return str.replace(/^[\s\u200B-\u200D\u2060\uFEFF]+|[\s\u200B-\u200D\u2060\uFEFF]+$/g, "");
+}
+
 export function extractHeadingContent(source: string, { md, env }: { md?: MarkdownIt; env?: any } = {}): string | null {
 	if (!source.includes("# ")) return null;
 	if (!md) {
@@ -9,7 +18,7 @@ export function extractHeadingContent(source: string, { md, env }: { md?: Markdo
 		const blockAttrInfo = findBlockAttr(source);
 		if (blockAttrInfo) source = source.slice(0, blockAttrInfo.start).trimEnd();
 		const matched = source.trim().match(/^(?:(?:>|[*+-]\s)\s*)*#{1,6}\s+(.*)$/); // Consider standard markdown syntax only.
-		const content = matched?.[1].trim();
+		const content = trim(matched?.[1] ?? "");
 		return content || null;
 	} else {
 		// If markdown it instance provided, the title extraction will be more precise. It supports inline syntax,
@@ -142,14 +151,14 @@ export function extractHtmlHeadingContent(html: string) {
 					const popped = tagStack.pop();
 					if (popped === targetHeadingTag) {
 						// Matched our heading end tag -> return collected text.
-						return decodeEntities(textContent).trim();
+						return trim(decodeEntities(textContent));
 					}
 				}
 				// If we are inside the heading and encounter a closing tag that *is* the heading tag
 				// but the stack top doesn't match (e.g., malformed HTML), we still treat it as closing.
 				if (insideHeading && tagName === targetHeadingTag) {
 					// Forcefully close it (robustness).
-					return decodeEntities(textContent).trim();
+					return trim(decodeEntities(textContent));
 				}
 			} else {
 				// Opening tag.
@@ -176,7 +185,7 @@ export function extractHtmlHeadingContent(html: string) {
 
 	// End of string: if heading was opened but never closed, return collected text.
 	if (insideHeading) {
-		return decodeEntities(textContent).trim();
+		return trim(decodeEntities(textContent));
 	}
 	return null;
 }
