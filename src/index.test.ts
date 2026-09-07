@@ -6,7 +6,7 @@ import type { Options } from "./types";
 export const dedent = dedentEscaped.withOptions({ escapeSpecialCharacters: false });
 
 function createMd(options?: Options) {
-	const md = MarkdownIt();
+	const md = MarkdownIt({ html: true });
 	md.use(i18nMacroPlugin, options);
 	return md;
 }
@@ -550,6 +550,80 @@ describe("i18nMacroPlugin", () => {
 		`;
 		const dist =
 			'<h2>这是“中文”内容带有<a href="#url">链接</a>和<img src=".jpg" alt="图片">。 {#这是-中文-内容带有链接和}</h2>';
+		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("has consistent heading id without creating duplicated ids", () => {
+		const md = createMd({ consistentHeadingId: true });
+		const src = dedent`
+			@en # Foo
+			@zh # 甲
+			@en # Foo
+			@zh # 甲
+			@en # Foo
+			@zh # 甲
+		`;
+		const dist = dedent`
+			<h1>甲 {#foo}</h1>
+			<h1>甲 {#foo-1}</h1>
+			<h1>甲 {#foo-2}</h1>
+		`;
+		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("should not change ids that has been manually defined", () => {
+		const md = createMd({ consistentHeadingId: true });
+		const src = dedent`
+			@en # Foo {#en-id}
+			@zh # 甲 {#zh-id}
+			@en # Foo
+			@zh # 甲
+			@en # Foo
+			@zh # 甲
+		`;
+		const dist = dedent`
+			<h1>甲 {#zh-id}</h1>
+			<h1>甲 {#foo}</h1>
+			<h1>甲 {#foo-1}</h1>
+		`;
+		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("has consistent heading id without creating ids that has been manually defined", () => {
+		const md = createMd({ consistentHeadingId: true });
+		const src = dedent`
+			@en # Foo {#foo-1}
+			@zh # 甲 {#foo-1}
+			@en # Foo
+			@zh # 甲
+			@en # Foo
+			@zh # 甲
+		`;
+		const dist = dedent`
+			<h1>甲 {#foo-1}</h1>
+			<h1>甲 {#foo}</h1>
+			<h1>甲 {#foo-2}</h1>
+		`;
+		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
+		expect(rendered).toBe(dist);
+	});
+	it("has consistent heading id without creating ids that has been manually defined in html", () => {
+		const md = createMd({ consistentHeadingId: true });
+		const src = dedent`
+			@en # Foo {#foo-2}
+			@zh # 甲 {#foo-2}
+			@en # Foo
+			@zh # 甲
+			@en # Foo
+			@zh # 甲
+			<img id="foo" />
+		`;
+		const dist = dedent`
+			<h1>甲 {#foo-2}</h1>
+			<h1>甲 {#foo-1}</h1>
+			<h1>甲 {#foo-3}</h1>
+			<img id="foo" />
+		`;
 		const rendered = md.render(src, { localeIndex: "zh" }).trimEnd();
 		expect(rendered).toBe(dist);
 	});

@@ -2,6 +2,7 @@ import type MarkdownIt from "markdown-it";
 import type { Options, ConsistentHeadingIdOptions } from "../types.js";
 import { replaceId, slugify } from "./attrs.js";
 import { extractHeadingContent } from "./heading.js";
+import { collectAllIds } from "./ids.js";
 import { matchLocale } from "./locale.js";
 
 interface ParseI18nMacroOptions {
@@ -49,9 +50,13 @@ export function parseI18nMacro(
 	{ rootLang = "en", consistentHeadingId = false, langAlias, md, env }: ParseI18nMacroOptions = {},
 ) {
 	currentLang ??= rootLang;
+	let slugs!: Set<string>;
 	if (consistentHeadingId) {
 		if (consistentHeadingId === true) consistentHeadingId = {};
 		consistentHeadingId.useLang ??= "en";
+
+		// Collect all defined IDs in the markdown document.
+		slugs = collectAllIds(src);
 	}
 
 	// A unique marker used to protect escaped macros from being processed.
@@ -167,7 +172,16 @@ export function parseI18nMacro(
 					return Object.values(cluster)[0] || "";
 				})();
 				const headingContent = extractHeadingContent(lineForSlug, { md, env });
-				if (headingContent) finalContent = replaceId(finalContent, oldId => oldId || slugify(headingContent));
+				if (headingContent)
+					finalContent = replaceId(finalContent, explicitId => {
+						if (explicitId) return explicitId;
+						const slug = slugify(headingContent);
+						let index = 1,
+							uniq = slug;
+						if (slugs.has(uniq)) while (slugs.has((uniq = `${slug}-${index++}`)));
+						slugs.add(uniq);
+						return uniq;
+					});
 			}
 
 			newLines.push(finalContent);
