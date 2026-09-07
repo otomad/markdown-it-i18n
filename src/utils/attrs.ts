@@ -38,17 +38,17 @@ export function replaceId(source: string, replacer: (oldId: string) => string): 
 
 	const newInner = newAttrParts.join(" ");
 	// Original separated whitespace char (i.e. the char before `{`)
-	const sepIdx = block.start - 1;
-	const separator = source[sepIdx]; // Must be a whitespace.
+	const sepIndex = block.start - 1;
+	const separator = source[sepIndex]; // Must be a whitespace.
 	const afterBlock = source.substring(block.end + 1); // The part after the attrs (includes trailing whitespaces).
 
 	if (newInner.length === 0) {
 		// Delete the whole block attrs with the leading whitespace, preserve the part after.
-		return source.substring(0, sepIdx) + afterBlock;
+		return source.substring(0, sepIndex) + afterBlock;
 	}
 
 	const replacement = `${separator}{${newInner}}`;
-	return source.substring(0, sepIdx) + replacement + afterBlock;
+	return source.substring(0, sepIndex) + replacement + afterBlock;
 }
 
 /**

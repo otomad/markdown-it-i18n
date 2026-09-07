@@ -240,7 +240,7 @@ md.use(i18nMacroPlugin, {
 
 When enabled, this option ensures that the same heading title has a **consistent HTML `id` attribute across all languages**. This greatly improves the user experience when switching languages — the URL hash (anchor) remains the same, so the page automatically scrolls to the same heading position instead of resetting to the top because the target ID disappeared.
 
-The ID is generated from the heading text in a specified language (defaults to English) and is appended using the `{#id}` attribute syntax, which is compatible with [`markdown-it-attrs`](https://www.npmjs.com/package/markdown-it-attrs). You can use `markdown-it-attrs` (or any other plugin with compatible syntax) to process these attributes, but it is not mandatory — the attributes are simply added to the markdown output.
+The ID is generated from the heading text in a specified language (defaults to English) and is appended using the `{#id}` attribute syntax, which is compatible with [`markdown-it-attrs`](https://www.npmjs.com/package/markdown-it-attrs) / [`@mdit/plugin-attrs`](https://www.npmjs.com/package/@mdit/plugin-attrs). You can use `markdown-it-attrs` / `@mdit/plugin-attrs` (or any other plugin with compatible syntax) to process these attributes, but it is not mandatory — the attributes are simply added to the markdown output.
 
 ```js
 const md = MarkdownIt();
@@ -294,7 +294,6 @@ md.use(i18nMacroPlugin, {
 
 - It only works with **line-level multilingual** syntax (`@`). Block-level (`@@@`) is not supported for this feature.
 - If a heading already has an **explicitly specified ID** (e.g., `# Title {#my-custom-id}`), the plugin will **not** override it — user-specified IDs are always preserved.
-- The plugin does **not** handle duplicate heading titles; if multiple headings produce the same slug, you need to adjust the options of downstream plugins (like [`markdown-it-anchor`](https://www.npmjs.com/package/markdown-it-anchor)) to avoid errors.
 
 #### Plugin Options Reference
 
