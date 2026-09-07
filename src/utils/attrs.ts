@@ -134,15 +134,19 @@ function unescape(str: string, quote: string): string {
 }
 
 /**
+ * A parsed markdown attribute.
+ */
+export interface Attr {
+	type: "id" | "class" | "attr" | "bool";
+	value?: string;
+	raw: string;
+	key?: string;
+}
+
+/**
  * Parse attribute list.
  */
-function parseAttrs(inner: string) {
-	interface Attr {
-		type: "id" | "class" | "attr" | "bool";
-		value?: string;
-		raw: string;
-		key?: string;
-	}
+export function parseAttrs(inner: string): Attr[] {
 	const attrs: Attr[] = [];
 	let i = 0;
 	while (i < inner.length) {

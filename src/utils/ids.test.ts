@@ -136,6 +136,13 @@ describe("collectAllIds", () => {
 		const dist = new Set(["foo"]);
 		expect(src).toIncludeSameMembers(dist);
 	});
+	it("collects nested IDs in markdown attrs", () => {
+		const src = collectAllIds(
+			`# Title ~~_***\`insert\`{#code}***{#bold-italic}_{#underscore}~~{#strikethrough} Here {#title}`,
+		);
+		const dist = new Set(["code", "bold-italic", "underscore", "strikethrough", "title"]);
+		expect(src).toIncludeSameMembers(dist);
+	});
 	it("is comprehensive testing", () => {
 		const src = collectAllIds(dedent`
 			# Title {#title-anchor}
