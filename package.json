@@ -1,6 +1,6 @@
 {
 	"name": "markdown-it-i18n",
-	"version": "2.0.2",
+	"version": "2.1.0",
 	"description": "Plugin to support single-page multilingual format in markdown",
 	"homepage": "https://github.com/otomad/markdown-it-i18n#readme",
 	"bugs": {
